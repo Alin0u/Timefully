@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "timefully",
+  "version": "${version}",
+  "name": "Timefully",
+  "description": "A customizable HUD clock that blends real-life and in-game time with weather, day-cycle icons, alarms and timers that sync across both.",
+  "authors": [
+    "alinou"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Alin0u/Timefully",
+    "sources": "https://github.com/Alin0u/Timefully",
+    "issues": "https://github.com/Alin0u/Timefully/issues"
+  },
+  "license": "LGPL-3.0-or-later",
+  "icon": "assets/timefully/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.alinou.timefully.Timefully"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  },
+  "suggests": {
+    "modmenu": "*",
+    "cloth-config": "*"
+  }
+}
