@@ -13,6 +13,17 @@
   "timefully.config.show_phase_label": "Show day-cycle name",
   "timefully.config.position.description": "To move the widget, bind a key for \"Move Timefully widget\" in Options, Controls, then press it in game and drag the widget.",
   "timefully.config.no_cloth": "Install Cloth Config for the full settings screen.",
+  "timefully.config.show_weather": "Show weather",
+  "timefully.config.category.style": "Style",
+  "timefully.config.fancy_mode": "Fancy panel",
+  "timefully.config.fancy_mode.tooltip": "Large clock over a scene that follows the day cycle and weather. Switch off for plain text lines.",
+  "timefully.config.panel_shape": "Panel shape",
+  "timefully.config.shape.rounded": "Rounded",
+  "timefully.config.shape.circle": "Circle",
+
+  "timefully.weather.clear": "Clear",
+  "timefully.weather.rain": "Rain",
+  "timefully.weather.thunder": "Thunder",
 
   "timefully.reposition.title": "Move Timefully widget",
   "timefully.reposition.hint": "Drag the widget to move it. Press Escape when done.",

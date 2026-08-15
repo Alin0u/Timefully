@@ -1,6 +1,7 @@
 package dev.alinou.timefully.config;
 
 import dev.alinou.timefully.Timefully;
+import dev.alinou.timefully.hud.PanelShape;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.FileReader;
@@ -22,6 +23,9 @@ public final class TimefullyConfig {
     private static boolean showGameTime = true;
     private static boolean showPhaseIcon = true;
     private static boolean showPhaseLabel = false;
+    private static boolean showWeather = true;
+    private static boolean fancyMode = true;
+    private static PanelShape panelShape = PanelShape.ROUNDED;
 
     private static float anchorX = 0.0f;
     private static float anchorY = 0.0f;
@@ -52,6 +56,18 @@ public final class TimefullyConfig {
         return showPhaseLabel;
     }
 
+    public static boolean showWeather() {
+        return showWeather;
+    }
+
+    public static boolean fancyMode() {
+        return fancyMode;
+    }
+
+    public static PanelShape panelShape() {
+        return panelShape;
+    }
+
     public static float anchorX() {
         return anchorX;
     }
@@ -76,6 +92,18 @@ public final class TimefullyConfig {
         showPhaseLabel = value;
     }
 
+    public static void setShowWeather(boolean value) {
+        showWeather = value;
+    }
+
+    public static void setFancyMode(boolean value) {
+        fancyMode = value;
+    }
+
+    public static void setPanelShape(PanelShape value) {
+        panelShape = value;
+    }
+
     /** Stores the widget anchor, clamped to the visible screen area. */
     public static void setAnchor(float x, float y) {
         anchorX = Math.clamp(x, 0.0f, 1.0f);
@@ -93,6 +121,9 @@ public final class TimefullyConfig {
             showGameTime = readBool(props, "showGameTime", showGameTime);
             showPhaseIcon = readBool(props, "showPhaseIcon", showPhaseIcon);
             showPhaseLabel = readBool(props, "showPhaseLabel", showPhaseLabel);
+            showWeather = readBool(props, "showWeather", showWeather);
+            fancyMode = readBool(props, "fancyMode", fancyMode);
+            panelShape = readShape(props, "panelShape", panelShape);
             setAnchor(readFloat(props, "anchorX", anchorX), readFloat(props, "anchorY", anchorY));
         } catch (IOException e) {
             Timefully.LOGGER.warn("Could not read {}: {}", FILE_NAME, e.getMessage());
@@ -108,6 +139,9 @@ public final class TimefullyConfig {
         props.setProperty("showGameTime", Boolean.toString(showGameTime));
         props.setProperty("showPhaseIcon", Boolean.toString(showPhaseIcon));
         props.setProperty("showPhaseLabel", Boolean.toString(showPhaseLabel));
+        props.setProperty("showWeather", Boolean.toString(showWeather));
+        props.setProperty("fancyMode", Boolean.toString(fancyMode));
+        props.setProperty("panelShape", panelShape.name());
         props.setProperty("anchorX", Float.toString(anchorX));
         props.setProperty("anchorY", Float.toString(anchorY));
         try (FileWriter writer = new FileWriter(configFile.toFile())) {
@@ -120,6 +154,18 @@ public final class TimefullyConfig {
     private static boolean readBool(Properties props, String key, boolean fallback) {
         String value = props.getProperty(key);
         return value == null ? fallback : Boolean.parseBoolean(value);
+    }
+
+    private static PanelShape readShape(Properties props, String key, PanelShape fallback) {
+        String value = props.getProperty(key);
+        if (value == null) {
+            return fallback;
+        }
+        try {
+            return PanelShape.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return fallback;
+        }
     }
 
     private static float readFloat(Properties props, String key, float fallback) {

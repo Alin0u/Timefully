@@ -23,25 +23,49 @@ public class RepositionScreen extends Screen {
         this.parent = parent;
     }
 
+    /** Widget size for whichever mode is active. Null when nothing is shown. */
+    private int[] widgetBounds(MinecraftClient client) {
+        long worldTime = client.world == null ? 0L : client.world.getTimeOfDay();
+        int w;
+        int h;
+        if (TimefullyConfig.fancyMode()) {
+            w = FancyPanel.width();
+            h = FancyPanel.height();
+        } else {
+            WidgetLayout layout = WidgetLayout.build(textRenderer, worldTime);
+            if (layout.lines().isEmpty()) {
+                return null;
+            }
+            w = layout.width();
+            h = layout.height();
+        }
+        return new int[] {WidgetLayout.originX(client, w), WidgetLayout.originY(client, h), w, h};
+    }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
         MinecraftClient client = MinecraftClient.getInstance();
-        long worldTime = client.world == null ? 0L : client.world.getTimeOfDay();
-        WidgetLayout layout = WidgetLayout.build(textRenderer, worldTime);
-        if (layout.lines().isEmpty()) {
+        int[] bounds = widgetBounds(client);
+        if (bounds == null) {
             context.drawCenteredTextWithShadow(textRenderer,
                     Text.translatable("timefully.reposition.nothing_shown"),
                     width / 2, height / 2, 0xFFFFFFFF);
             return;
         }
 
-        int x = WidgetLayout.originX(client, layout.width());
-        int y = WidgetLayout.originY(client, layout.height());
+        int x = bounds[0];
+        int y = bounds[1];
+        long worldTime = client.world == null ? 0L : client.world.getTimeOfDay();
 
-        TimefullyHud.draw(context, client, layout, x, y, HIGHLIGHT_COLOR);
-        context.drawBorder(x, y, layout.width(), layout.height(), OUTLINE_COLOR);
+        if (TimefullyConfig.fancyMode()) {
+            FancyPanel.render(context, client, x, y, worldTime);
+        } else {
+            WidgetLayout layout = WidgetLayout.build(textRenderer, worldTime);
+            TimefullyHud.draw(context, client, layout, x, y, HIGHLIGHT_COLOR);
+        }
+        context.drawBorder(x, y, bounds[2], bounds[3], OUTLINE_COLOR);
 
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.translatable("timefully.reposition.hint"),
@@ -51,13 +75,14 @@ public class RepositionScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         MinecraftClient client = MinecraftClient.getInstance();
-        long worldTime = client.world == null ? 0L : client.world.getTimeOfDay();
-        WidgetLayout layout = WidgetLayout.build(textRenderer, worldTime);
+        int[] bounds = widgetBounds(client);
+        if (bounds == null) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
 
-        int x = WidgetLayout.originX(client, layout.width());
-        int y = WidgetLayout.originY(client, layout.height());
-
-        if (mouseX >= x && mouseX < x + layout.width() && mouseY >= y && mouseY < y + layout.height()) {
+        int x = bounds[0];
+        int y = bounds[1];
+        if (mouseX >= x && mouseX < x + bounds[2] && mouseY >= y && mouseY < y + bounds[3]) {
             dragging = true;
             grabOffsetX = (int) mouseX - x;
             grabOffsetY = (int) mouseY - y;
@@ -73,11 +98,13 @@ public class RepositionScreen extends Screen {
         }
 
         MinecraftClient client = MinecraftClient.getInstance();
-        long worldTime = client.world == null ? 0L : client.world.getTimeOfDay();
-        WidgetLayout layout = WidgetLayout.build(textRenderer, worldTime);
+        int[] bounds = widgetBounds(client);
+        if (bounds == null) {
+            return true;
+        }
 
-        int freeX = Math.max(1, width - layout.width());
-        int freeY = Math.max(1, height - layout.height());
+        int freeX = Math.max(1, width - bounds[2]);
+        int freeY = Math.max(1, height - bounds[3]);
         TimefullyConfig.setAnchor((float) (mouseX - grabOffsetX) / freeX,
                 (float) (mouseY - grabOffsetY) / freeY);
         return true;

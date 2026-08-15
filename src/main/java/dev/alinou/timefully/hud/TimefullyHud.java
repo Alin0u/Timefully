@@ -1,6 +1,7 @@
 package dev.alinou.timefully.hud;
 
 import dev.alinou.timefully.Timefully;
+import dev.alinou.timefully.config.TimefullyConfig;
 import dev.alinou.timefully.time.DayPhase;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
@@ -28,7 +29,16 @@ public class TimefullyHud implements HudRenderCallback {
             return;
         }
 
-        WidgetLayout layout = WidgetLayout.build(client.textRenderer, client.world.getTimeOfDay());
+        long worldTime = client.world.getTimeOfDay();
+
+        if (TimefullyConfig.fancyMode()) {
+            int x = WidgetLayout.originX(client, FancyPanel.width());
+            int y = WidgetLayout.originY(client, FancyPanel.height());
+            FancyPanel.render(context, client, x, y, worldTime);
+            return;
+        }
+
+        WidgetLayout layout = WidgetLayout.build(client.textRenderer, worldTime);
         if (layout.lines().isEmpty()) {
             return;
         }
