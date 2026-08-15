@@ -64,9 +64,6 @@ public final class WidgetLayout {
                     GameTime.hourOfDay(worldTime), GameTime.minuteOfHour(worldTime)));
             lines.add(new Line(time, TimefullyConfig.showPhaseIcon() ? phase : null));
         }
-        if (TimefullyConfig.showPhaseLabel()) {
-            lines.add(new Line(Text.translatable(phase.translationKey()), null));
-        }
 
         int contentWidth = 0;
         for (Line line : lines) {

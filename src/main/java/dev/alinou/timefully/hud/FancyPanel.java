@@ -4,16 +4,19 @@ import dev.alinou.timefully.Timefully;
 import dev.alinou.timefully.config.TimefullyConfig;
 import dev.alinou.timefully.time.DayPhase;
 import dev.alinou.timefully.time.GameTime;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * The fancy widget: a big seven-segment in-game clock over a scene that
- * follows the day cycle and weather.
+ * The fancy widget: a large in-game clock over a flat background that
+ * follows the day cycle, with the real time and weather on the row below.
  *
  * Layout follows the rows that are switched on. The second row holds the
  * real time and the weather icon; if only one of them is shown it sits in
@@ -33,17 +36,19 @@ public final class FancyPanel {
     private static final int WEATHER_CELL = 12;
     private static final int WEATHER_SHEET_W = WEATHER_CELL * 3;
 
-    /** Drawn size of one big digit. */
+    /** Drawn size of one seven-segment digit. */
     private static final int BIG_W = 11;
     private static final int BIG_H = 18;
     private static final int BIG_GAP = 1;
     private static final int COLON_W = 6;
 
+    /** Vertical scale applied to the vanilla font for DEFAULT/BOLD styles. */
+    private static final float VANILLA_SCALE = 1.8f;
+
     private static final int PANEL_W = 104;
     private static final int PANEL_H = 74;
     private static final int CIRCLE_SIZE = 96;
 
-    private static final int TEXT_COLOR = 0xFFFFFFFF;
     private static final int RIM_COLOR = 0x66FFFFFF;
 
     private static final DateTimeFormatter REAL_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
@@ -67,7 +72,7 @@ public final class FancyPanel {
         int width = width();
         int height = height();
 
-        ScenePainter.paint(context, x, y, width, height, phase, weather, shape);
+        ScenePainter.paint(context, x, y, width, height, phase, shape);
         drawRim(context, x, y, width, height, shape);
 
         boolean showGame = TimefullyConfig.showGameTime();
@@ -78,13 +83,16 @@ public final class FancyPanel {
         int topPadding = shape == PanelShape.CIRCLE ? Math.round(height * 0.20f) : 8;
         int clockY = secondRow ? topPadding : topPadding + 6;
 
+        int bigHeight = TimefullyConfig.fontStyle() == FontStyle.FANCY
+                ? BIG_H : Math.round(client.textRenderer.fontHeight * VANILLA_SCALE);
+
         if (showGame) {
-            drawBigTime(context, x, width, clockY,
+            drawGameTime(context, client, x, width, clockY,
                     GameTime.hourOfDay(worldTime), GameTime.minuteOfHour(worldTime));
         }
 
         if (secondRow) {
-            int rowY = clockY + (showGame ? BIG_H + 5 : 0);
+            int rowY = clockY + (showGame ? bigHeight + 5 : 0);
             drawSecondRow(context, client, x, width, rowY, showReal, showWeather, weather);
         }
     }
@@ -103,34 +111,82 @@ public final class FancyPanel {
 
         if (showReal) {
             int textY = rowY + (WEATHER_CELL - client.textRenderer.fontHeight) / 2;
-            context.drawTextWithShadow(client.textRenderer, realTime, startX, textY, TEXT_COLOR);
+            context.drawTextWithShadow(client.textRenderer, realTime, startX, textY, textColor());
         }
         if (showWeather) {
             int iconX = startX + textWidth + gap;
-            context.drawTexture(WEATHER, iconX, rowY, WEATHER_CELL, WEATHER_CELL,
+            drawTinted(context, WEATHER, iconX, rowY, WEATHER_CELL, WEATHER_CELL,
                     weather.iconIndex() * WEATHER_CELL, 0, WEATHER_CELL, WEATHER_CELL,
-                    WEATHER_SHEET_W, WEATHER_CELL);
+                    WEATHER_SHEET_W, WEATHER_CELL, 0xFFFFFF, TimefullyConfig.weatherIconAlpha());
         }
     }
 
-    /** HH:MM in seven-segment digits, centred in the panel. */
-    private static void drawBigTime(DrawContext context, int x, int width, int y, int hour, int minute) {
+    /** In-game time, drawn with whichever font style is configured. */
+    private static void drawGameTime(DrawContext context, MinecraftClient client, int x, int width,
+                                     int y, int hour, int minute) {
+        String time = String.format("%02d:%02d", hour, minute);
+        switch (TimefullyConfig.fontStyle()) {
+            case FANCY -> drawSevenSegmentTime(context, x, width, y, hour, minute);
+            case BOLD -> drawScaledVanillaTime(context, client, x, width, y, time, true);
+            default -> drawScaledVanillaTime(context, client, x, width, y, time, false);
+        }
+    }
+
+    private static void drawScaledVanillaTime(DrawContext context, MinecraftClient client, int x, int width,
+                                              int y, String time, boolean bold) {
+        int lineWidth = client.textRenderer.getWidth(time);
+        float scale = VANILLA_SCALE;
+        int scaledWidth = Math.round(lineWidth * scale);
+        int drawX = x + (width - scaledWidth) / 2;
+
+        context.getMatrices().push();
+        context.getMatrices().translate(drawX, y, 0);
+        context.getMatrices().scale(scale, scale, 1f);
+        Text text = Text.literal(time).setStyle(Style.EMPTY.withBold(bold));
+        context.drawTextWithShadow(client.textRenderer, text, 0, 0, textColor());
+        context.getMatrices().pop();
+    }
+
+    private static void drawSevenSegmentTime(DrawContext context, int x, int width, int y, int hour, int minute) {
         int totalWidth = BIG_W * 4 + BIG_GAP * 4 + COLON_W;
         int cursor = x + (width - totalWidth) / 2;
 
         cursor = drawDigit(context, cursor, y, hour / 10);
         cursor = drawDigit(context, cursor, y, hour % 10);
-        context.drawTexture(DIGITS, cursor, y, COLON_W, BIG_H,
-                10 * DIGIT_W, 0, DIGIT_W, DIGIT_H, SHEET_W, DIGIT_H);
+        drawTinted(context, DIGITS, cursor, y, COLON_W, BIG_H,
+                10 * DIGIT_W, 0, DIGIT_W, DIGIT_H, SHEET_W, DIGIT_H, textColor(), TimefullyConfig.textAlpha());
         cursor += COLON_W + BIG_GAP;
         cursor = drawDigit(context, cursor, y, minute / 10);
         drawDigit(context, cursor, y, minute % 10);
     }
 
     private static int drawDigit(DrawContext context, int x, int y, int value) {
-        context.drawTexture(DIGITS, x, y, BIG_W, BIG_H,
-                value * DIGIT_W, 0, DIGIT_W, DIGIT_H, SHEET_W, DIGIT_H);
+        drawTinted(context, DIGITS, x, y, BIG_W, BIG_H,
+                value * DIGIT_W, 0, DIGIT_W, DIGIT_H, SHEET_W, DIGIT_H, textColor(), TimefullyConfig.textAlpha());
         return x + BIG_W + BIG_GAP;
+    }
+
+    /**
+     * Draws a region of a white-source sprite tinted to a colour and
+     * transparency. DrawContext's public drawTexture overloads in this
+     * version have no colour parameter, so the tint is applied via the
+     * shader colour, matching what Chestifier does for its icon sprites.
+     */
+    private static void drawTinted(DrawContext context, Identifier texture, int x, int y, int width, int height,
+                                   int u, int v, int regionWidth, int regionHeight,
+                                   int textureWidth, int textureHeight, int rgb, int alpha) {
+        float r = (rgb >> 16 & 0xFF) / 255f;
+        float g = (rgb >> 8 & 0xFF) / 255f;
+        float b = (rgb & 0xFF) / 255f;
+        float a = (alpha & 0xFF) / 255f;
+        RenderSystem.setShaderColor(r, g, b, a);
+        context.drawTexture(texture, x, y, width, height, u, v, regionWidth, regionHeight,
+                textureWidth, textureHeight);
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+    }
+
+    private static int textColor() {
+        return TimefullyConfig.textAlpha() << 24 | TimefullyConfig.textColor();
     }
 
     /** Thin light outline, in the spirit of VoxelMap's map frame. */

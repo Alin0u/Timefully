@@ -46,6 +46,10 @@ public class RepositionScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
+        if (dragging) {
+            updateAnchorFromMouse(mouseX, mouseY);
+        }
+
         MinecraftClient client = MinecraftClient.getInstance();
         int[] bounds = widgetBounds(client);
         if (bounds == null) {
@@ -96,18 +100,28 @@ public class RepositionScreen extends Screen {
         if (!dragging) {
             return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
         }
+        updateAnchorFromMouse(mouseX, mouseY);
+        return true;
+    }
 
+    /**
+     * Recomputes the anchor from the mouse's current absolute position.
+     * Uses the absolute position rather than accumulated deltas: on some
+     * platforms mouseDragged's deltaX/deltaY pair does not report Y
+     * movement reliably while the button is held, which left the widget
+     * stuck against the top edge.
+     */
+    private void updateAnchorFromMouse(double mouseX, double mouseY) {
         MinecraftClient client = MinecraftClient.getInstance();
         int[] bounds = widgetBounds(client);
         if (bounds == null) {
-            return true;
+            return;
         }
 
         int freeX = Math.max(1, width - bounds[2]);
         int freeY = Math.max(1, height - bounds[3]);
         TimefullyConfig.setAnchor((float) (mouseX - grabOffsetX) / freeX,
                 (float) (mouseY - grabOffsetY) / freeY);
-        return true;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package dev.alinou.timefully.config;
 
+import dev.alinou.timefully.hud.FontStyle;
 import dev.alinou.timefully.hud.PanelShape;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -41,10 +42,6 @@ public class FallbackConfigScreen extends Screen {
                 TimefullyConfig.showPhaseIcon(), TimefullyConfig::setShowPhaseIcon);
         y += WIDGET_HEIGHT + SPACING;
 
-        addToggle(x, y, "timefully.config.show_phase_label",
-                TimefullyConfig.showPhaseLabel(), TimefullyConfig::setShowPhaseLabel);
-        y += WIDGET_HEIGHT + SPACING;
-
         addToggle(x, y, "timefully.config.show_weather",
                 TimefullyConfig.showWeather(), TimefullyConfig::setShowWeather);
         y += WIDGET_HEIGHT + SPACING;
@@ -60,6 +57,15 @@ public class FallbackConfigScreen extends Screen {
                 .build(x, y, WIDGET_WIDTH, WIDGET_HEIGHT,
                         Text.translatable("timefully.config.panel_shape"),
                         (button, value) -> TimefullyConfig.setPanelShape(value)));
+        y += WIDGET_HEIGHT + SPACING;
+
+        addDrawableChild(CyclingButtonWidget
+                .<FontStyle>builder(value -> Text.translatable(value.translationKey()))
+                .values(FontStyle.values())
+                .initially(TimefullyConfig.fontStyle())
+                .build(x, y, WIDGET_WIDTH, WIDGET_HEIGHT,
+                        Text.translatable("timefully.config.font_style"),
+                        (button, value) -> TimefullyConfig.setFontStyle(value)));
         y += (WIDGET_HEIGHT + SPACING) * 2;
 
         addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), button -> close())
@@ -81,6 +87,9 @@ public class FallbackConfigScreen extends Screen {
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.translatable("timefully.config.no_cloth"),
                 width / 2, 36, 0xFFA0A0A0);
+        context.drawCenteredTextWithShadow(textRenderer,
+                Text.translatable("timefully.config.no_cloth_colors"),
+                width / 2, 48, 0xFFA0A0A0);
     }
 
     @Override
