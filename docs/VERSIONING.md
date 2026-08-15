@@ -11,7 +11,7 @@ patch it claims to cover.
 ## Repo layout
 
 - `main` - no mod source. Just this file, `README.md`, `LICENSE` and
-  `COPYING`. The landing page for the repo; links out to the version
+  `LICENSE.GPL`. The landing page for the repo; links out to the version
   branches below.
 - `fabric_<exact-mc-version>` - one branch per confirmed-working Minecraft
   version, e.g. `fabric_1.21.1`. Each is a complete, independent mod

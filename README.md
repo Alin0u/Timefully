@@ -47,4 +47,4 @@ of its own and features WorldTime never had.
 
 LGPL-3.0, see [LICENSE](LICENSE). The LGPL-3.0 is written as a set of
 additional permissions on top of the GPL-3.0, so the GPL-3.0 text it refers
-to is included as [COPYING](COPYING).
+to is included as [LICENSE.GPL](LICENSE.GPL).
