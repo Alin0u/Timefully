@@ -1,0 +1,43 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# Fabric Loom dev environment (test client/server run from ./gradlew runClient etc.)
+run/
+
+# Eclipse
+bin/
+*.launch
+.project
+.classpath
+.settings/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Package files
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+*.log
+hs_err_pid*
+replay_pid*
+.mtj.tmp/
+*.ctxt
