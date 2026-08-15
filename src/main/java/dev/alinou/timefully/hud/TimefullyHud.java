@@ -1,60 +1,63 @@
 package dev.alinou.timefully.hud;
 
+import dev.alinou.timefully.Timefully;
 import dev.alinou.timefully.time.DayPhase;
-import dev.alinou.timefully.time.GameTime;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.ColorHelper;
-
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.util.Identifier;
 
 /** Draws the clock widget each frame. */
 public class TimefullyHud implements HudRenderCallback {
 
-    private static final DateTimeFormatter REAL_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+    public static final Identifier ICONS = Identifier.of(Timefully.MODID, "textures/icons.png");
 
-    private static final int MARGIN = 4;
-    private static final int PADDING = 4;
-    private static final int LINE_HEIGHT = 10;
-    private static final int TEXT_COLOR = 0xFFFFFFFF;
-    private static final int BACKGROUND_COLOR = ColorHelper.Argb.getArgb(120, 0, 0, 0);
+    /** Source sheet is four 16x16 cells in a row. */
+    private static final int SHEET_WIDTH = 64;
+    private static final int SHEET_HEIGHT = 16;
+    private static final int CELL = 16;
+
+    static final int TEXT_COLOR = 0xFFFFFFFF;
+    static final int BACKGROUND_COLOR = 0x78000000;
 
     @Override
-    public void onHudRender(DrawContext context, net.minecraft.client.render.RenderTickCounter tickCounter) {
+    public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null || client.options.hudHidden) {
             return;
         }
 
-        ClientWorld world = client.world;
-        long worldTime = world.getTimeOfDay();
+        WidgetLayout layout = WidgetLayout.build(client.textRenderer, client.world.getTimeOfDay());
+        if (layout.lines().isEmpty()) {
+            return;
+        }
 
-        Text realLine = Text.literal(LocalTime.now().format(REAL_TIME_FORMAT));
-        Text gameLine = Text.literal(String.format("%02d:%02d", GameTime.hourOfDay(worldTime),
-                GameTime.minuteOfHour(worldTime)));
-        Text phaseLine = Text.translatable(DayPhase.of(worldTime).translationKey());
-
-        int width = maxWidth(client, realLine, gameLine, phaseLine) + PADDING * 2;
-        int height = LINE_HEIGHT * 3 + PADDING * 2;
-
-        context.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKGROUND_COLOR);
-
-        int textX = MARGIN + PADDING;
-        int textY = MARGIN + PADDING;
-        context.drawTextWithShadow(client.textRenderer, realLine, textX, textY, TEXT_COLOR);
-        context.drawTextWithShadow(client.textRenderer, gameLine, textX, textY + LINE_HEIGHT, TEXT_COLOR);
-        context.drawTextWithShadow(client.textRenderer, phaseLine, textX, textY + LINE_HEIGHT * 2, TEXT_COLOR);
+        int x = WidgetLayout.originX(client, layout.width());
+        int y = WidgetLayout.originY(client, layout.height());
+        draw(context, client, layout, x, y, BACKGROUND_COLOR);
     }
 
-    private static int maxWidth(MinecraftClient client, Text... lines) {
-        int max = 0;
-        for (Text line : lines) {
-            max = Math.max(max, client.textRenderer.getWidth(line));
+    /** Shared by the HUD and the reposition screen. */
+    static void draw(DrawContext context, MinecraftClient client, WidgetLayout layout,
+                     int x, int y, int backgroundColor) {
+        context.fill(x, y, x + layout.width(), y + layout.height(), backgroundColor);
+
+        int lineY = y + WidgetLayout.PADDING;
+        for (WidgetLayout.Line line : layout.lines()) {
+            int textX = x + WidgetLayout.PADDING;
+            if (line.icon() != null) {
+                drawPhaseIcon(context, line.icon(), textX, lineY - 1);
+                textX += WidgetLayout.ICON_SIZE + WidgetLayout.ICON_GAP;
+            }
+            int textY = lineY + (WidgetLayout.LINE_HEIGHT - client.textRenderer.fontHeight) / 2;
+            context.drawTextWithShadow(client.textRenderer, line.text(), textX, textY, TEXT_COLOR);
+            lineY += WidgetLayout.LINE_HEIGHT;
         }
-        return max;
+    }
+
+    private static void drawPhaseIcon(DrawContext context, DayPhase phase, int x, int y) {
+        context.drawTexture(ICONS, x, y, WidgetLayout.ICON_SIZE, WidgetLayout.ICON_SIZE,
+                phase.iconIndex() * CELL, 0, CELL, CELL, SHEET_WIDTH, SHEET_HEIGHT);
     }
 }

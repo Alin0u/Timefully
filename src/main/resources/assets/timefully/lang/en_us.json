@@ -2,5 +2,22 @@
   "timefully.phase.dawn": "Dawn",
   "timefully.phase.day": "Day",
   "timefully.phase.dusk": "Dusk",
-  "timefully.phase.night": "Night"
+  "timefully.phase.night": "Night",
+
+  "timefully.config.title": "Timefully",
+  "timefully.config.category.display": "Display",
+  "timefully.config.show_real_time": "Show real-life time",
+  "timefully.config.show_game_time": "Show in-game time",
+  "timefully.config.show_phase_icon": "Show day-cycle icon",
+  "timefully.config.show_phase_icon.tooltip": "Sun, moon, dawn or dusk, shown next to the in-game time.",
+  "timefully.config.show_phase_label": "Show day-cycle name",
+  "timefully.config.position.description": "To move the widget, bind a key for \"Move Timefully widget\" in Options, Controls, then press it in game and drag the widget.",
+  "timefully.config.no_cloth": "Install Cloth Config for the full settings screen.",
+
+  "timefully.reposition.title": "Move Timefully widget",
+  "timefully.reposition.hint": "Drag the widget to move it. Press Escape when done.",
+  "timefully.reposition.nothing_shown": "Every component is switched off, so there is nothing to place.",
+
+  "key.categories.timefully": "Timefully",
+  "key.timefully.reposition": "Move Timefully widget"
 }

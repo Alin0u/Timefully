@@ -18,6 +18,9 @@
   "entrypoints": {
     "client": [
       "dev.alinou.timefully.Timefully"
+    ],
+    "modmenu": [
+      "dev.alinou.timefully.config.ModMenuIntegration"
     ]
   },
   "depends": {

@@ -29,4 +29,14 @@ public enum DayPhase {
     public String translationKey() {
         return "timefully.phase." + name().toLowerCase();
     }
+
+    /** Column of this phase in textures/icons.png (sun, moon, dawn, dusk). */
+    public int iconIndex() {
+        return switch (this) {
+            case DAY -> 0;
+            case NIGHT -> 1;
+            case DAWN -> 2;
+            case DUSK -> 3;
+        };
+    }
 }
