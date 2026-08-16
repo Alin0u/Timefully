@@ -41,3 +41,6 @@ hs_err_pid*
 replay_pid*
 .mtj.tmp/
 *.ctxt
+
+# docs/ lives on main only, per docs/VERSIONING.md's repo layout
+docs/

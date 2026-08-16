@@ -2,7 +2,7 @@ package dev.alinou.timefully.config;
 
 import dev.alinou.timefully.hud.BackgroundMode;
 import dev.alinou.timefully.hud.FontStyle;
-import dev.alinou.timefully.hud.PanelShape;
+import dev.alinou.timefully.hud.LayoutMode;
 import dev.alinou.timefully.time.DayPhase;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -48,18 +48,19 @@ final class ClothConfigScreenFactory {
                 .build());
 
         display.addEntry(entries
-                .startBooleanToggle(Text.translatable("timefully.config.show_phase_icon"),
-                        TimefullyConfig.showPhaseIcon())
-                .setDefaultValue(true)
-                .setTooltip(Text.translatable("timefully.config.show_phase_icon.tooltip"))
-                .setSaveConsumer(TimefullyConfig::setShowPhaseIcon)
-                .build());
-
-        display.addEntry(entries
                 .startBooleanToggle(Text.translatable("timefully.config.show_weather"),
                         TimefullyConfig.showWeather())
                 .setDefaultValue(true)
                 .setSaveConsumer(TimefullyConfig::setShowWeather)
+                .build());
+
+        display.addEntry(entries
+                .startEnumSelector(Text.translatable("timefully.config.layout_mode"),
+                        LayoutMode.class, TimefullyConfig.layoutMode())
+                .setDefaultValue(LayoutMode.GROUPED)
+                .setEnumNameProvider(value -> Text.translatable(((LayoutMode) value).translationKey()))
+                .setTooltip(Text.translatable("timefully.config.layout_mode.tooltip"))
+                .setSaveConsumer(TimefullyConfig::setLayoutMode)
                 .build());
 
         display.addEntry(entries
@@ -68,22 +69,6 @@ final class ClothConfigScreenFactory {
 
         ConfigCategory style = builder.getOrCreateCategory(
                 Text.translatable("timefully.config.category.style"));
-
-        style.addEntry(entries
-                .startBooleanToggle(Text.translatable("timefully.config.fancy_mode"),
-                        TimefullyConfig.fancyMode())
-                .setDefaultValue(true)
-                .setTooltip(Text.translatable("timefully.config.fancy_mode.tooltip"))
-                .setSaveConsumer(TimefullyConfig::setFancyMode)
-                .build());
-
-        style.addEntry(entries
-                .startEnumSelector(Text.translatable("timefully.config.panel_shape"),
-                        PanelShape.class, TimefullyConfig.panelShape())
-                .setDefaultValue(PanelShape.ROUNDED)
-                .setEnumNameProvider(value -> Text.translatable(((PanelShape) value).translationKey()))
-                .setSaveConsumer(TimefullyConfig::setPanelShape)
-                .build());
 
         style.addEntry(entries
                 .startEnumSelector(Text.translatable("timefully.config.font_style"),
@@ -99,16 +84,8 @@ final class ClothConfigScreenFactory {
                 .setSaveConsumer(TimefullyConfig::setTextColor)
                 .build());
 
-        style.addEntry(entries
-                .startColorField(Text.translatable("timefully.config.icon_color"), TimefullyConfig.iconColor())
-                .setDefaultValue(0xFFFFFF)
-                .setSaveConsumer(TimefullyConfig::setIconColor)
-                .build());
-
         style.addEntry(alphaSlider(entries, "timefully.config.text_alpha",
                 TimefullyConfig.textAlpha(), TimefullyConfig::setTextAlpha));
-        style.addEntry(alphaSlider(entries, "timefully.config.icon_alpha",
-                TimefullyConfig.iconAlpha(), TimefullyConfig::setIconAlpha));
         style.addEntry(alphaSlider(entries, "timefully.config.weather_icon_alpha",
                 TimefullyConfig.weatherIconAlpha(), TimefullyConfig::setWeatherIconAlpha));
 

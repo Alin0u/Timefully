@@ -2,8 +2,9 @@ package dev.alinou.timefully.config;
 
 import dev.alinou.timefully.Timefully;
 import dev.alinou.timefully.hud.BackgroundMode;
+import dev.alinou.timefully.hud.ElementId;
 import dev.alinou.timefully.hud.FontStyle;
-import dev.alinou.timefully.hud.PanelShape;
+import dev.alinou.timefully.hud.LayoutMode;
 import dev.alinou.timefully.time.DayPhase;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -16,9 +17,9 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Persisted widget settings: which components are shown, where the widget
- * sits, and how it is styled. Position is stored as a fraction of the
- * screen so the widget keeps its place when the window is resized.
+ * Persisted widget settings: which components are shown, where they sit,
+ * and how they are styled. Position is stored as a fraction of the screen
+ * so the widget keeps its place when the window is resized.
  */
 public final class TimefullyConfig {
 
@@ -26,11 +27,9 @@ public final class TimefullyConfig {
 
     private static boolean showRealTime = true;
     private static boolean showGameTime = true;
-    private static boolean showPhaseIcon = true;
     private static boolean showWeather = true;
-    private static boolean fancyMode = true;
-    private static PanelShape panelShape = PanelShape.ROUNDED;
     private static FontStyle fontStyle = FontStyle.DEFAULT;
+    private static LayoutMode layoutMode = LayoutMode.GROUPED;
 
     private static BackgroundMode backgroundMode = BackgroundMode.STANDARD;
     private static int singleBackgroundColor = 0x5A7A86;
@@ -39,13 +38,15 @@ public final class TimefullyConfig {
     /** 0-255. */
     private static int backgroundAlpha = 220;
     private static int textAlpha = 255;
-    private static int iconAlpha = 255;
     private static int weatherIconAlpha = 255;
     private static int textColor = 0xFFFFFF;
-    private static int iconColor = 0xFFFFFF;
 
+    /** Used in GROUPED layout mode. */
     private static float anchorX = 0.0f;
     private static float anchorY = 0.0f;
+
+    /** Used in SEPARATED layout mode, one position per element. */
+    private static final Map<ElementId, float[]> elementAnchors = new EnumMap<>(ElementId.class);
 
     private static Path configFile;
 
@@ -57,6 +58,10 @@ public final class TimefullyConfig {
         phaseBackgroundColors.put(DayPhase.DAY, 0x5A7A86);
         phaseBackgroundColors.put(DayPhase.DUSK, 0x6A4A5E);
         phaseBackgroundColors.put(DayPhase.NIGHT, 0x262C46);
+
+        elementAnchors.put(ElementId.REAL_TIME, new float[] {0.0f, 0.0f});
+        elementAnchors.put(ElementId.GAME_TIME, new float[] {0.0f, 0.12f});
+        elementAnchors.put(ElementId.WEATHER, new float[] {0.0f, 0.24f});
     }
 
     public static void init() {
@@ -72,24 +77,16 @@ public final class TimefullyConfig {
         return showGameTime;
     }
 
-    public static boolean showPhaseIcon() {
-        return showPhaseIcon;
-    }
-
     public static boolean showWeather() {
         return showWeather;
     }
 
-    public static boolean fancyMode() {
-        return fancyMode;
-    }
-
-    public static PanelShape panelShape() {
-        return panelShape;
-    }
-
     public static FontStyle fontStyle() {
         return fontStyle;
+    }
+
+    public static LayoutMode layoutMode() {
+        return layoutMode;
     }
 
     public static BackgroundMode backgroundMode() {
@@ -112,20 +109,12 @@ public final class TimefullyConfig {
         return textAlpha;
     }
 
-    public static int iconAlpha() {
-        return iconAlpha;
-    }
-
     public static int weatherIconAlpha() {
         return weatherIconAlpha;
     }
 
     public static int textColor() {
         return textColor;
-    }
-
-    public static int iconColor() {
-        return iconColor;
     }
 
     public static float anchorX() {
@@ -136,6 +125,14 @@ public final class TimefullyConfig {
         return anchorY;
     }
 
+    public static float elementAnchorX(ElementId element) {
+        return elementAnchors.get(element)[0];
+    }
+
+    public static float elementAnchorY(ElementId element) {
+        return elementAnchors.get(element)[1];
+    }
+
     public static void setShowRealTime(boolean value) {
         showRealTime = value;
     }
@@ -144,24 +141,16 @@ public final class TimefullyConfig {
         showGameTime = value;
     }
 
-    public static void setShowPhaseIcon(boolean value) {
-        showPhaseIcon = value;
-    }
-
     public static void setShowWeather(boolean value) {
         showWeather = value;
     }
 
-    public static void setFancyMode(boolean value) {
-        fancyMode = value;
-    }
-
-    public static void setPanelShape(PanelShape value) {
-        panelShape = value;
-    }
-
     public static void setFontStyle(FontStyle value) {
         fontStyle = value;
+    }
+
+    public static void setLayoutMode(LayoutMode value) {
+        layoutMode = value;
     }
 
     public static void setBackgroundMode(BackgroundMode value) {
@@ -184,10 +173,6 @@ public final class TimefullyConfig {
         textAlpha = clampByte(alpha);
     }
 
-    public static void setIconAlpha(int alpha) {
-        iconAlpha = clampByte(alpha);
-    }
-
     public static void setWeatherIconAlpha(int alpha) {
         weatherIconAlpha = clampByte(alpha);
     }
@@ -196,14 +181,15 @@ public final class TimefullyConfig {
         textColor = rgb & 0xFFFFFF;
     }
 
-    public static void setIconColor(int rgb) {
-        iconColor = rgb & 0xFFFFFF;
-    }
-
-    /** Stores the widget anchor, clamped to the visible screen area. */
+    /** Stores the widget anchor for GROUPED mode, clamped to the visible screen area. */
     public static void setAnchor(float x, float y) {
         anchorX = Math.clamp(x, 0.0f, 1.0f);
         anchorY = Math.clamp(y, 0.0f, 1.0f);
+    }
+
+    /** Stores one element's anchor for SEPARATED mode, clamped to the visible screen area. */
+    public static void setElementAnchor(ElementId element, float x, float y) {
+        elementAnchors.put(element, new float[] {Math.clamp(x, 0.0f, 1.0f), Math.clamp(y, 0.0f, 1.0f)});
     }
 
     private static void load() {
@@ -215,11 +201,9 @@ public final class TimefullyConfig {
             props.load(reader);
             showRealTime = readBool(props, "showRealTime", showRealTime);
             showGameTime = readBool(props, "showGameTime", showGameTime);
-            showPhaseIcon = readBool(props, "showPhaseIcon", showPhaseIcon);
             showWeather = readBool(props, "showWeather", showWeather);
-            fancyMode = readBool(props, "fancyMode", fancyMode);
-            panelShape = readEnum(props, "panelShape", PanelShape.class, panelShape);
             fontStyle = readEnum(props, "fontStyle", FontStyle.class, fontStyle);
+            layoutMode = readEnum(props, "layoutMode", LayoutMode.class, layoutMode);
             backgroundMode = readEnum(props, "backgroundMode", BackgroundMode.class, backgroundMode);
             singleBackgroundColor = readInt(props, "singleBackgroundColor", singleBackgroundColor);
             for (DayPhase phase : DayPhase.values()) {
@@ -228,11 +212,15 @@ public final class TimefullyConfig {
             }
             backgroundAlpha = clampByte(readInt(props, "backgroundAlpha", backgroundAlpha));
             textAlpha = clampByte(readInt(props, "textAlpha", textAlpha));
-            iconAlpha = clampByte(readInt(props, "iconAlpha", iconAlpha));
             weatherIconAlpha = clampByte(readInt(props, "weatherIconAlpha", weatherIconAlpha));
             textColor = readInt(props, "textColor", textColor);
-            iconColor = readInt(props, "iconColor", iconColor);
             setAnchor(readFloat(props, "anchorX", anchorX), readFloat(props, "anchorY", anchorY));
+            for (ElementId element : ElementId.values()) {
+                float[] fallback = elementAnchors.get(element);
+                float x = readFloat(props, "anchor." + element.name() + ".x", fallback[0]);
+                float y = readFloat(props, "anchor." + element.name() + ".y", fallback[1]);
+                setElementAnchor(element, x, y);
+            }
         } catch (IOException e) {
             Timefully.LOGGER.warn("Could not read {}: {}", FILE_NAME, e.getMessage());
         }
@@ -245,11 +233,9 @@ public final class TimefullyConfig {
         Properties props = new Properties();
         props.setProperty("showRealTime", Boolean.toString(showRealTime));
         props.setProperty("showGameTime", Boolean.toString(showGameTime));
-        props.setProperty("showPhaseIcon", Boolean.toString(showPhaseIcon));
         props.setProperty("showWeather", Boolean.toString(showWeather));
-        props.setProperty("fancyMode", Boolean.toString(fancyMode));
-        props.setProperty("panelShape", panelShape.name());
         props.setProperty("fontStyle", fontStyle.name());
+        props.setProperty("layoutMode", layoutMode.name());
         props.setProperty("backgroundMode", backgroundMode.name());
         props.setProperty("singleBackgroundColor", Integer.toString(singleBackgroundColor));
         for (DayPhase phase : DayPhase.values()) {
@@ -258,12 +244,15 @@ public final class TimefullyConfig {
         }
         props.setProperty("backgroundAlpha", Integer.toString(backgroundAlpha));
         props.setProperty("textAlpha", Integer.toString(textAlpha));
-        props.setProperty("iconAlpha", Integer.toString(iconAlpha));
         props.setProperty("weatherIconAlpha", Integer.toString(weatherIconAlpha));
         props.setProperty("textColor", Integer.toString(textColor));
-        props.setProperty("iconColor", Integer.toString(iconColor));
         props.setProperty("anchorX", Float.toString(anchorX));
         props.setProperty("anchorY", Float.toString(anchorY));
+        for (ElementId element : ElementId.values()) {
+            float[] anchor = elementAnchors.get(element);
+            props.setProperty("anchor." + element.name() + ".x", Float.toString(anchor[0]));
+            props.setProperty("anchor." + element.name() + ".y", Float.toString(anchor[1]));
+        }
         try (FileWriter writer = new FileWriter(configFile.toFile())) {
             props.store(writer, "Timefully settings");
         } catch (IOException e) {

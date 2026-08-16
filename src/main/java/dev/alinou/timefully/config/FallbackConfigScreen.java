@@ -1,7 +1,7 @@
 package dev.alinou.timefully.config;
 
 import dev.alinou.timefully.hud.FontStyle;
-import dev.alinou.timefully.hud.PanelShape;
+import dev.alinou.timefully.hud.LayoutMode;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -38,25 +38,17 @@ public class FallbackConfigScreen extends Screen {
                 TimefullyConfig.showGameTime(), TimefullyConfig::setShowGameTime);
         y += WIDGET_HEIGHT + SPACING;
 
-        addToggle(x, y, "timefully.config.show_phase_icon",
-                TimefullyConfig.showPhaseIcon(), TimefullyConfig::setShowPhaseIcon);
-        y += WIDGET_HEIGHT + SPACING;
-
         addToggle(x, y, "timefully.config.show_weather",
                 TimefullyConfig.showWeather(), TimefullyConfig::setShowWeather);
         y += WIDGET_HEIGHT + SPACING;
 
-        addToggle(x, y, "timefully.config.fancy_mode",
-                TimefullyConfig.fancyMode(), TimefullyConfig::setFancyMode);
-        y += WIDGET_HEIGHT + SPACING;
-
         addDrawableChild(CyclingButtonWidget
-                .<PanelShape>builder(value -> Text.translatable(value.translationKey()))
-                .values(PanelShape.values())
-                .initially(TimefullyConfig.panelShape())
+                .<LayoutMode>builder(value -> Text.translatable(value.translationKey()))
+                .values(LayoutMode.values())
+                .initially(TimefullyConfig.layoutMode())
                 .build(x, y, WIDGET_WIDTH, WIDGET_HEIGHT,
-                        Text.translatable("timefully.config.panel_shape"),
-                        (button, value) -> TimefullyConfig.setPanelShape(value)));
+                        Text.translatable("timefully.config.layout_mode"),
+                        (button, value) -> TimefullyConfig.setLayoutMode(value)));
         y += WIDGET_HEIGHT + SPACING;
 
         addDrawableChild(CyclingButtonWidget
